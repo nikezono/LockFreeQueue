@@ -29,3 +29,7 @@ Chapter 10.5.
 ### Optimistic Approarch to lock-free FIFO queue
 
 [Paper](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.94.8625)
+
+## Memo
+
+* エリミネーションのほうがスケールする気がする.

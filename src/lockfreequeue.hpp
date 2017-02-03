@@ -2,13 +2,15 @@
 #define LOCKFREEQUEUE_HPP
 
 #include <atomic>
-#include <mutex>  // @TODO FORDEBUG
 
 class LockFreeQueue {
   struct Node {
     void* value;
     std::atomic<Node*> next;
-    Node(void* v) : value(v), next(nullptr) {}
+    std::atomic<Node*> prev;
+    Node(void* v) : value(v), next(nullptr), prev(nullptr) {}
+    void set_next(Node* n) { next = n; }
+    void set_prev(Node* n) { prev = n; }
   };
 
  public:
@@ -17,21 +19,22 @@ class LockFreeQueue {
   ~LockFreeQueue() { delete sentinel_; }
 
   void enqueue(void* v) {
-    std::unique_lock<std::mutex> queuelock(debug_lock_);
-
     Node* node = new Node(v);
-    Node* last = tail_.load();
-    Node* next = last->next.load();
-    last->next.compare_exchange_strong(next, node);
-    tail_.store(node);
+
+    for (;;) {
+      Node* last = tail_.load();
+      node->set_next(last);
+      if (tail_.compare_exchange_weak(last, node)) {
+        last->set_prev(node);
+        break;
+      }
+    }
   }
 
   void* dequeue() {
     for (;;) {
-      std::unique_lock<std::mutex> queuelock(debug_lock_);
-
       Node* first = head_.load();
-      Node* next = first->next.load();
+      Node* last = tail_.load();
       if (next == nullptr) return nullptr;
       head_.store(next);
       return next->value;
@@ -39,11 +42,12 @@ class LockFreeQueue {
   }
 
  private:
+  void fix_list() {}
+
+ private:
   Node* sentinel_;
   std::atomic<Node*> head_;
   std::atomic<Node*> tail_;
-
-  std::mutex debug_lock_;
 };
 
 #endif  // LOCKFREEQUEUE_HPP
