@@ -16,7 +16,14 @@ class LockFreeQueue {
  public:
   LockFreeQueue()
       : sentinel_(new Node(nullptr)), head_(sentinel_), tail_(sentinel_) {}
-  ~LockFreeQueue() { delete sentinel_; }
+  ~LockFreeQueue() {
+    Node* last = tail_.load();
+    while (last) {
+      tail_.compare_exchange_weak(last, last->next);
+      delete last;
+      last = tail_.load();
+    }
+  }
 
   void enqueue(void* v) {
     Node* node = new Node(v);
@@ -43,7 +50,6 @@ class LockFreeQueue {
           continue;
         } else {
           if (head_.compare_exchange_weak(first, first_prev)) {
-            // delete first;
             return first_prev->value;
           }
         }

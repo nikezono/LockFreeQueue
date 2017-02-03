@@ -41,6 +41,3 @@ int main(int argc, char** argv) {
   std::cout << WORKERS << " " << duration << " "
             << (WORKERS * ITERATION) * 1000 / duration << std::endl;
 }
-
-// @TODO How to test whether a queue lockfree? how to emulate preemption without
-// modifying source?
