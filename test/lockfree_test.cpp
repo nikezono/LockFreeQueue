@@ -5,7 +5,7 @@
 #include "lockfreequeue.hpp"
 
 constexpr static size_t WORKERS = 10;
-constexpr static size_t ITERATION = 1000;
+constexpr static size_t ITERATION = 10000;
 
 TEST(LockFreeQueue, init) { LockFreeQueue queue; }
 

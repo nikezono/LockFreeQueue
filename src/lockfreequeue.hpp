@@ -7,7 +7,7 @@ class LockFreeQueue {
   struct Node {
     void* value;
     std::atomic<Node*> next;
-    std::atomic<Node*> prev;
+    Node* prev;
     Node(void* v) : value(v), next(nullptr), prev(nullptr) {}
     void set_next(Node* n) { next = n; }
     void set_prev(Node* n) { prev = n; }
@@ -35,14 +35,34 @@ class LockFreeQueue {
     for (;;) {
       Node* first = head_.load();
       Node* last = tail_.load();
-      if (next == nullptr) return nullptr;
-      head_.store(next);
-      return next->value;
+      Node* first_prev = first->prev;
+      if (first == head_.load()) {  // Check consistency
+        if (last == first) return nullptr;
+        if (!first_prev) {  // prev chain isnt consistent
+          fix_list();       // helping
+          continue;
+        } else {
+          if (head_.compare_exchange_weak(first, first_prev)) {
+            // delete first;
+            return first_prev->value;
+          }
+        }
+      }
     }
   }
 
  private:
-  void fix_list() {}
+  // fix_list can execute without lock or atomic ops. its idempotent.
+  void fix_list() {
+    Node* cur = tail_.load();
+    Node* first = head_.load();
+    Node* cur_next;
+    while (first == head_.load() && cur != first) {
+      cur_next = cur->next;
+      cur_next->prev = cur;  // fix prev chain
+      cur = cur_next;
+    }
+  }
 
  private:
   Node* sentinel_;
