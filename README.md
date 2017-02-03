@@ -16,6 +16,12 @@ ninja
 ctest
 ```
 
+## Benchmark
+
+```
+ninja && export file="./benchmark/$(git log -n1 --format=%H | cut -c 1-5).result" && rm -f $file && echo "Thread ms TPS" > $file && for i in {0..THREAD}; do ./benchmark/benchmark ${ITERATION} 10000 >> $file; done && less $file
+```
+
 ## References
 
 ### MS-Queue
@@ -29,3 +35,7 @@ Chapter 10.5.
 ### Optimistic Approarch to lock-free FIFO queue
 
 [Paper](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.94.8625)
+
+## Memo
+
+* エリミネーションのほうがスケールする気がする.

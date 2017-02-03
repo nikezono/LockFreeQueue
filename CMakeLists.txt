@@ -15,4 +15,5 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics --save-temps") # DEB
 include_directories(src)
 add_subdirectory(src)
 add_subdirectory(test)
+add_subdirectory(benchmark)
 
