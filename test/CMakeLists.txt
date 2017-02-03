@@ -1,0 +1,3 @@
+add_executable(lockfree_test lockfree_test.cpp)
+target_link_libraries(lockfree_test gtest_main)
+add_test(lockfree_test lockfree_test)
