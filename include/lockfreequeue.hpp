@@ -16,6 +16,7 @@ class LockFreeQueue {
  public:
   LockFreeQueue()
       : sentinel_(new Node(nullptr)), head_(sentinel_), tail_(sentinel_) {}
+  LockFreeQueue(const LockFreeQueue& o): sentinel_(o.sentinel_), head_(sentinel_), tail_(sentinel_){}
   ~LockFreeQueue() {
     Node* last = tail_.load();
     while (last) {

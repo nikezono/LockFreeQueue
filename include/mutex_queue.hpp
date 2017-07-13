@@ -12,6 +12,7 @@ class MutexQueue {
 
  public:
   MutexQueue() : head_(new Node(nullptr)), tail_(head_) {}
+  MutexQueue(const MutexQueue& o) : head_(o.head_), tail_(o.tail_) {}
   ~MutexQueue() {
     auto* node = head_;
     while (node) {
