@@ -1,3 +1,3 @@
-add_executable(lockfree_test lockfree_test.cpp)
-target_link_libraries(lockfree_test gtest_main)
-add_test(lockfree_test lockfree_test)
+add_executable(queue_test queue_test.cpp)
+target_link_libraries(queue_test gtest_main)
+add_test(queue_test queue_test)

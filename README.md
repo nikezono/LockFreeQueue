@@ -19,7 +19,7 @@ ctest
 ## Benchmark
 
 ```
-ninja && export file="./benchmark/$(git log -n1 --format=%H | cut -c 1-5).result" && rm -f $file && echo "Thread ms TPS" > $file && for i in {0..THREAD}; do ./benchmark/benchmark ${ITERATION} 10000 >> $file; done && less $file
+ninja && export file="./benchmark/$(git log -n1 --format=%H | cut -c 1-5).result" && rm -f $file && echo "Queue Thread OPS" > $file && for i in {0..16}; do ./benchmark/benchmark ${i} >> $file; done && less $file
 ```
 
 ## References

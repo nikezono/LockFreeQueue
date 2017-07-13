@@ -3,41 +3,62 @@
 #include <iostream>
 #include <thread>
 #include <vector>
+#include <atomic>
 
 #include "lockfreequeue.hpp"
+#include "mutex_queue.hpp"
 
-int main(int argc, char** argv) {
-  assert(argc > 2);
-  const size_t WORKERS = std::stoi(std::string(argv[1]));
-  const size_t ITERATION = std::stoi(std::string(argv[2]));
+template <typename T>
+size_t benchmark(size_t workers) {
+  T queue;
+  std::vector<std::thread> threads(workers);
+  std::atomic<bool> finish_flag(false);
+  std::atomic<size_t> total_count(0);
 
-  LockFreeQueue queue;
-  std::vector<std::thread> threads(WORKERS);
+  pthread_barrier_t start_barrier;
+  int res = pthread_barrier_init(&start_barrier, NULL, workers + 1);
+  if (res != 0) {
+    perror("main thread barrier");
+  }
 
-  auto begin = std::chrono::high_resolution_clock::now();
 
-  for (size_t i = 0; i < WORKERS; i++) {
-    threads[i] = std::thread([&]() {
-      std::vector<int> nums(ITERATION, 0);
-      for (auto& num : nums) {
-        queue.enqueue(&num);
+  for (size_t i = 0; i < workers; i++) {
+    threads[i] = std::thread([&, i]() {
+      size_t count = 0;
+      pthread_barrier_wait(&start_barrier);
+      while(!finish_flag){
+        queue.enqueue(nullptr);
+        queue.dequeue();
+        count += 2;
       }
-      void* ptr = nullptr;
-      for (auto __ : nums) {
-        while (ptr == nullptr) {
-          ptr = queue.dequeue();
-        }
-        (void)(__);
-      }
+      
+      total_count += count;
     });
   }
 
-  for (size_t i = 0; i < WORKERS; i++) threads[i].join();
+
+  auto begin = std::chrono::high_resolution_clock::now();
+  pthread_barrier_wait(&start_barrier);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000*2));
+  finish_flag.store(true);
+
+  for (size_t i = 0; i < workers; i++) threads[i].join();
 
   auto end = std::chrono::high_resolution_clock::now();
   auto duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(end - begin)
           .count();
-  std::cout << WORKERS << " " << duration << " "
-            << (WORKERS * ITERATION) * 1000 / duration << std::endl;
+  auto ops = (total_count * 1000) / duration;
+  return ops;
+}
+
+int main(int argc, char** argv) {
+  assert(argc > 1);
+  const size_t WORKERS = std::stoi(std::string(argv[1]));
+
+  size_t ops = benchmark<LockFreeQueue>(WORKERS);
+  std::cout << "OptimisticLockfree: " << WORKERS << " " << ops << std::endl;
+
+  ops = benchmark<MutexQueue>(WORKERS);
+  std::cout << "Mutex: " << WORKERS << " " << ops << std::endl;
 }
