@@ -40,6 +40,10 @@ class MutexQueue {
     }
   }
 
+  bool is_empty(){
+    return head_ == tail_;
+  }
+
  private:
   Node* head_;
   Node* tail_;

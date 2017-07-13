@@ -57,6 +57,10 @@ class LockFreeQueue {
     }
   }
 
+  bool is_empty(){
+    return head_.load() == tail_.load();
+  }
+
  private:
   // fix_list can execute without lock or atomic ops. its idempotent.
   void fix_list() {

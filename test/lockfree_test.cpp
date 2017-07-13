@@ -31,6 +31,15 @@ TYPED_TEST(queue_test, dequeue) {
   ASSERT_EQ(&i, ret_ptr);
 }
 
+TYPED_TEST(queue_test, is_empty) {
+  int i;
+  ASSERT_TRUE(this->queue.is_empty());
+  this->queue.enqueue(&i);
+  ASSERT_FALSE(this->queue.is_empty());
+  this->queue.dequeue();
+  ASSERT_TRUE(this->queue.is_empty());
+}
+
 TYPED_TEST(queue_test, fcfs) {
   std::vector<int> nums(ITERATION, 0);
   for (auto& num : nums) {
